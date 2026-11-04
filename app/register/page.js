@@ -8,17 +8,19 @@ export default function Register() {
   const router = useRouter();
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
+  const [slow, setSlow] = useState(false);
   const [invite, setInvite] = useState('');
   useEffect(() => { setInvite((new URLSearchParams(window.location.search).get('invite') || '').toUpperCase()); }, []);
   async function submit(e) {
     e.preventDefault();
     const f = Object.fromEntries(new FormData(e.target));
-    setBusy(true); setError('');
+    setBusy(true); setError(''); setSlow(false);
+    const wake = setTimeout(() => setSlow(true), 4000);
     try {
       const data = await api('/auth/register', { method: 'POST', body: f });
       saveSession(data);
       router.replace('/documents');
-    } catch (err) { setError(err.message); setBusy(false); }
+    } catch (err) { setError(err.message); setBusy(false); } finally { clearTimeout(wake); }
   }
   return (
     <main className="auth">
@@ -34,6 +36,7 @@ export default function Register() {
           <div className="radios"><label><input type="radio" name="role" value="borrower" defaultChecked /> Borrower</label><label><input type="radio" name="role" value="lender" /> Lender (bank, MFI or investor)</label></div>
         </div>
         <p className="muted">After you register you upload your documents, and an admin checks them before you can borrow or bid.</p>
+        {slow && !error && <p className="muted" role="status">The server was asleep and is waking up. This can take up to a minute the first time.</p>}
         <p className="err" role="alert">{error}</p>
         <button className="btn" disabled={busy}>{busy ? 'Creating...' : 'Create account'}</button>
       </form>

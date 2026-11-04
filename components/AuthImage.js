@@ -1,6 +1,6 @@
 'use client';
 import { useEffect, useState } from 'react';
-import { getSession } from '../lib/api';
+import { API_BASE, getSession } from '../lib/api';
 
 /** An image that needs the sign-in token to load, so it is fetched first and then shown. */
 export default function AuthImage({ fileId, alt, className }) {
@@ -9,7 +9,7 @@ export default function AuthImage({ fileId, alt, className }) {
     if (!fileId) return undefined;
     let url; let alive = true;
     const s = getSession();
-    fetch(`/api/properties/files/${fileId}`, { headers: s ? { authorization: 'Bearer ' + s.token } : {} })
+    fetch(`${API_BASE}/properties/files/${fileId}`, { headers: s ? { authorization: 'Bearer ' + s.token } : {} })
       .then((r) => (r.ok ? r.blob() : Promise.reject(new Error('no image'))))
       .then((b) => { if (alive) { url = URL.createObjectURL(b); setSrc(url); } })
       .catch(() => {});
